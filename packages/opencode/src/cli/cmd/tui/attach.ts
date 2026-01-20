@@ -5,6 +5,7 @@ import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { TuiConfig } from "@/config/tui"
 import { Instance } from "@/project/instance"
 import { existsSync } from "fs"
+import { parseAttachUrl } from "./parse-url"
 
 export const AttachCommand = cmd({
   command: "attach <url>",
@@ -13,7 +14,7 @@ export const AttachCommand = cmd({
     yargs
       .positional("url", {
         type: "string",
-        describe: "http://localhost:4096",
+        describe: "Server URL: http://localhost:4096 or unix:///path/to/socket",
         demandOption: true,
       })
       .option("dir", {
@@ -60,6 +61,13 @@ export const AttachCommand = cmd({
           return args.dir
         }
       })()
+      let parsed
+      try {
+        parsed = parseAttachUrl(args.url)
+      } catch (error) {
+        console.error(`Error: ${error instanceof Error ? error.message : error}`)
+        process.exit(1)
+      }
       const headers = (() => {
         const password = args.password ?? process.env.OPENCODE_SERVER_PASSWORD
         if (!password) return undefined
@@ -71,7 +79,7 @@ export const AttachCommand = cmd({
         fn: () => TuiConfig.get(),
       })
       await tui({
-        url: args.url,
+        url: parsed.baseUrl,
         config,
         args: {
           continue: args.continue,
@@ -80,6 +88,7 @@ export const AttachCommand = cmd({
         },
         directory,
         headers,
+        unix: parsed.unix,
       })
     } finally {
       unguard?.()

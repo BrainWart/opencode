@@ -108,6 +108,7 @@ export function tui(input: {
   args: Args
   config: TuiConfig.Info
   directory?: string
+  unix?: string
   fetch?: typeof fetch
   headers?: RequestInit["headers"]
   events?: EventSource
@@ -561,6 +562,25 @@ function App() {
       value: "docs.open",
       onSelect: () => {
         open("https://opencode.ai/docs").catch(() => {})
+        dialog.clear()
+      },
+      category: "System",
+    },
+    {
+      title: "Open WebUI",
+      value: "webui.open",
+      hidden: sdk.url.startsWith("unix://"),
+      onSelect: () => {
+        if (sdk.url.startsWith("unix://")) {
+          toast.show({
+            variant: "warning",
+            message: "Cannot open WebUI for Unix socket connections",
+            duration: 3000,
+          })
+          dialog.clear()
+          return
+        }
+        open(sdk.url).catch(() => {})
         dialog.clear()
       },
       category: "System",

@@ -12,6 +12,7 @@ export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
   init: (props: {
     url: string
     directory?: string
+    unix?: string
     fetch?: typeof fetch
     headers?: RequestInit["headers"]
     events?: EventSource
@@ -21,6 +22,7 @@ export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
       baseUrl: props.url,
       signal: abort.signal,
       directory: props.directory,
+      unix: props.unix,
       fetch: props.fetch,
       headers: props.headers,
     })
@@ -96,6 +98,8 @@ export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
       if (timer) clearTimeout(timer)
     })
 
-    return { client: sdk, event: emitter, url: props.url }
+    const displayUrl = props.unix ? `unix://${props.unix}` : props.url
+
+    return { client: sdk, event: emitter, url: displayUrl }
   },
 })
